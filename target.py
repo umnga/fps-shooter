@@ -83,3 +83,16 @@ class Target:
         discriminant = b * b - 4 * a * c
         
         return discriminant > 0
+
+class GameState:
+    """Manages game statistics and state"""
+    def __init__(self):
+        self.shots_fired = 0
+        self.hits = 0
+        self.score = 0
+    
+    def get_accuracy(self):
+        """Calculate shooting accuracy percentage"""
+        if self.shots_fired == 0:
+            return 0.0
+        return (self.hits / self.shots_fired) * 100
