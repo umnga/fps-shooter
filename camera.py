@@ -1,8 +1,9 @@
 """
-Camera module for FPS Training Simulation.
+Camera module for first-person view control
 
-Implements a first-person camera with position, yaw (horizontal rotation),
-and pitch (vertical rotation) controls.
+This module implements a first-person camera system with mouse-look functionality.
+The camera uses yaw (horizontal) and pitch (vertical) angles to calculate
+forward, right, and up vectors for 3D orientation.
 """
 
 import numpy as np
