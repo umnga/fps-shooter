@@ -9,6 +9,7 @@ import numpy as np
 import math
 from OpenGL.GL import *
 from OpenGL.GLU import *
+from config import MOUSE_SENSITIVITY
 
 
 class Camera:
