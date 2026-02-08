@@ -70,8 +70,7 @@ class Target:
         glPopMatrix()
     
     def check_hit(self, ray_origin, ray_direction):
-        """Check if ray intersects this sphere (ray-sphere intersection)"""
-        if not self.active:
+        """Check if ray intersects this sphere (ray-sphere intersection)"""                 if not self.active:
             return False
         
         oc = ray_origin - self.position
