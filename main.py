@@ -1,10 +1,3 @@
-"""
-FPS Training Simulation - Phase 1: 3D Camera and Environment Setup
-Computer Graphics Project
-
-Libraries: pygame, PyOpenGL, numpy
-"""
-
 import pygame
 from pygame.locals import *
 from OpenGL.GL import *
@@ -14,6 +7,7 @@ import math
 
 from camera import Camera
 from renderer import Renderer
+from target import TargetManager
 
 
 # Window settings
@@ -50,12 +44,13 @@ def init_opengl():
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 
-def handle_input(camera, keys_pressed, mouse_rel, delta_time):
+def handle_input(camera, target_manager, keys_pressed, mouse_rel, delta_time):
     """
-    Handle all input: keyboard for movement, mouse for looking.
+    Handle all input: keyboard for movement, mouse for looking, click for shooting.
     
     Args:
         camera: Camera instance
+        target_manager: TargetManager instance for hit detection
         keys_pressed: pygame key state
         mouse_rel: tuple of mouse relative movement (dx, dy)
         delta_time: time since last frame in seconds
@@ -63,17 +58,44 @@ def handle_input(camera, keys_pressed, mouse_rel, delta_time):
     Returns:
         bool: False if should quit, True otherwise
     """
-    # Check for quit
+    # Check for quit and mouse clicks
     for event in pygame.event.get():
         if event.type == QUIT:
             return False
         if event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 return False
+            if event.key == K_r:
+                # Reset stats
+                target_manager.reset_stats()
+        if event.type == MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left click
+                # Shoot - check for hit
+                ray_origin = camera.position.copy()
+                ray_direction = camera.get_forward_vector()
+                target_manager.check_shot(ray_origin, ray_direction)
+        # Re-grab mouse if it was released (e.g., by Cmd key on macOS)
+        if event.type == ACTIVEEVENT or event.type == WINDOWEVENT:
+            if not pygame.event.get_grab():
+                pygame.event.set_grab(True)
+                pygame.mouse.set_visible(False)
+    
+    # Ensure mouse stays grabbed (macOS Cmd key workaround)
+    if not pygame.event.get_grab():
+        pygame.event.set_grab(True)
+        pygame.mouse.set_visible(False)
+        # Discard the mouse movement from ungrab/regrab
+        pygame.mouse.get_rel()
+        return True
     
     # Mouse look
     mouse_sensitivity = 0.1
     dx, dy = mouse_rel
+    
+    # Ignore large mouse jumps (from grab state changes)
+    if abs(dx) > 100 or abs(dy) > 100:
+        dx, dy = 0, 0
+    
     camera.rotate(dx * mouse_sensitivity, -dy * mouse_sensitivity)
     
     # Keyboard movement
@@ -95,25 +117,27 @@ def handle_input(camera, keys_pressed, mouse_rel, delta_time):
     return True
 
 
-def update(camera, delta_time):
+def update(camera, target_manager, delta_time):
     """
     Update game state.
     
     Args:
         camera: Camera instance
+        target_manager: TargetManager instance
         delta_time: time since last frame in seconds
     """
-    # Future: Update game objects, physics, etc.
-    pass
+    # Update targets (spawning, despawning)
+    target_manager.update(delta_time)
 
 
-def draw(camera, renderer):
+def draw(camera, renderer, target_manager):
     """
     Render the scene.
     
     Args:
         camera: Camera instance
         renderer: Renderer instance
+        target_manager: TargetManager instance
     """
     # Clear buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -127,8 +151,19 @@ def draw(camera, renderer):
     renderer.draw_ground_plane()
     renderer.draw_coordinate_axes()
     
+    # Draw targets
+    renderer.draw_targets(target_manager.get_targets())
+    
     # Draw 2D overlay (crosshair)
     renderer.draw_crosshair(WINDOW_WIDTH, WINDOW_HEIGHT)
+    
+    # Draw stats
+    renderer.draw_stats(
+        WINDOW_WIDTH, WINDOW_HEIGHT,
+        target_manager.hits,
+        target_manager.misses,
+        target_manager.get_accuracy()
+    )
     
     # Swap buffers
     pygame.display.flip()
@@ -151,6 +186,7 @@ def main():
     # Create game objects
     camera = Camera(position=np.array([0.0, 1.7, 5.0]))  # Eye height ~1.7m
     renderer = Renderer()
+    target_manager = TargetManager()
     
     # Timing
     clock = pygame.time.Clock()
@@ -166,13 +202,13 @@ def main():
         mouse_rel = pygame.mouse.get_rel()
         
         # Handle input
-        running = handle_input(camera, keys_pressed, mouse_rel, delta_time)
+        running = handle_input(camera, target_manager, keys_pressed, mouse_rel, delta_time)
         
         # Update game state
-        update(camera, delta_time)
+        update(camera, target_manager, delta_time)
         
         # Render
-        draw(camera, renderer)
+        draw(camera, renderer, target_manager)
     
     # Cleanup
     pygame.quit()
