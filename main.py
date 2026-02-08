@@ -103,6 +103,7 @@ def main():
         pygame.display.flip()
         clock.tick(60)
     
+      # Cleanup on exit
     pygame.event.set_grab(False)
     pygame.mouse.set_visible(True)
     pygame.quit()
