@@ -1,5 +1,8 @@
 """
 Target module for managing shooting targets
+
+This module contains the Target class for moving sphere objects
+and the GameState class for tracking player statistics.
 """
 import random
 import numpy as np
@@ -70,7 +73,8 @@ class Target:
         glPopMatrix()
     
     def check_hit(self, ray_origin, ray_direction):
-        """Check if ray intersects this sphere (ray-sphere intersection)"""                 if not self.active:
+        """Check if ray intersects this sphere (ray-sphere intersection)"""
+        if not self.active:
             return False
         
         oc = ray_origin - self.position
