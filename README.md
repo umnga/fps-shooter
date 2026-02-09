@@ -1,3 +1,4 @@
 # FPS Training Simulation
 
-<video src="https://raw.githubusercontent.com/umnga/fps-shooter/master/demo.mp4" autoplay loop muted playsinline></video>
+https://github.com/user-attachments/assets/8a99025e-8e2d-4443-94be-8d1a286c672e
+
